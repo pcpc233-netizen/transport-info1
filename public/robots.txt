@@ -1,0 +1,22 @@
+# robots.txt for Life Info Hub
+# Allow all search engines to index everything
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://your-domain.com/sitemap.xml
+
+# Crawl delay (optional, helps prevent server overload)
+Crawl-delay: 1
+
+# Block admin panel from indexing
+Disallow: /admin
+
+# Allow Google image bot
+User-agent: Googlebot-Image
+Allow: /*
+
+# Allow Google mobile bot
+User-agent: Googlebot-Mobile
+Allow: /*
