@@ -1,0 +1,18 @@
+# 관리자 페이지 서브도메인 설정 가이드
+
+## 현재 접속 방법
+- **URL:** `https://transport-info1.vercel.app/admin`
+- **로그인:** `admin` / `transport2024!`
+
+---
+
+## 서브도메인으로 변경하기 (선택사항)
+
+### 1️⃣ Vercel에서 커스텀 도메인 추가
+
+#### A. 본인 도메인이 있는 경우
+1. Vercel 대시보드 → 프로젝트 선택
+2. **Settings** → **Domains**
+3. **Add Domain** 클릭
+4. `admin.yourdomain.com` 입력
+5. DNS 설정:
