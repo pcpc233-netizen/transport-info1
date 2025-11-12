@@ -1,3 +1,4 @@
+import AdminPage from './pages/AdminPage';
 import { useState, useEffect } from 'react';
 import { Bus, Search, TrendingUp, Clock, MapPin, Activity, Train, Plane } from 'lucide-react';
 import Header from './components/Header';
@@ -26,6 +27,9 @@ interface LongtailContent {
 }
 
 function App() {
+function App() {
+  if (window.location.hash === '#admin') {
+    return <AdminPage />;
   const [buses, setBuses] = useState<Service[]>([]);
   const [filteredBuses, setFilteredBuses] = useState<Service[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
