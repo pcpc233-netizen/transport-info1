@@ -27,7 +27,6 @@ interface LongtailContent {
 }
 
 function App() {
-function App() {
   if (window.location.hash === '#admin') {
     return <AdminPage />;
   const [buses, setBuses] = useState<Service[]>([]);
