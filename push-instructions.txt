@@ -1,0 +1,32 @@
+=== GitHub에 업로드하는 방법 ===
+
+당신의 PC에서 실행하세요:
+
+1. 터미널/명령프롬프트 열기
+
+2. 프로젝트 폴더로 이동:
+   cd transport-info1
+
+3. Git 초기화:
+   git init
+   git add .
+   git commit -m "Initial commit"
+
+4. GitHub에 연결:
+   git branch -M main
+   git remote add origin https://github.com/pcpc233-netizen/transport-info1.git
+
+5. 푸시:
+   git push -u origin main
+
+GitHub 로그인 창이 뜨면 로그인하세요.
+
+=== 또는 ===
+
+GitHub Desktop 사용:
+1. File → Add Local Repository
+2. 프로젝트 폴더 선택
+3. Publish repository 클릭
+4. Repository name: transport-info1
+5. Publish 클릭
+

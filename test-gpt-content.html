@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GPT 콘텐츠 생성 테스트</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-8">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold mb-6">GPT 콘텐츠 생성 테스트</h1>
+
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <h2 class="text-xl font-bold mb-4">설정</h2>
+      <div class="mb-4">
+        <label class="block text-sm font-medium mb-2">Supabase URL</label>
+        <input type="text" id="supabaseUrl" class="w-full border rounded px-3 py-2" value="https://gibqdecjcdyeyxtknbok.supabase.co">
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium mb-2">Service Role Key</label>
+        <input type="password" id="serviceKey" class="w-full border rounded px-3 py-2" value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdpYnFkZWNqY2R5ZXl4dGtuYm9rIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2Mjc1MzA3OSwiZXhwIjoyMDc4MzI5MDc5fQ.Y3xje6vYDXHqbKAMZqU6Lo6e_BrjOpLZWl9NXOFn_IA">
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium mb-2">생성할 콘텐츠 개수</label>
+        <input type="number" id="limit" class="w-full border rounded px-3 py-2" value="3" min="1" max="10">
+      </div>
+      <button onclick="generateContent()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+        GPT 콘텐츠 생성 시작
+      </button>
+    </div>
+
+    <div id="status" class="bg-white rounded-lg shadow p-6 mb-6 hidden">
+      <h2 class="text-xl font-bold mb-4">실행 상태</h2>
+      <div id="statusContent" class="text-sm"></div>
+    </div>
+
+    <div id="results" class="bg-white rounded-lg shadow p-6 hidden">
+      <h2 class="text-xl font-bold mb-4">결과</h2>
+      <div id="resultsContent"></div>
+    </div>
+  </div>
+
+  <script>
+    async function generateContent() {
+      const supabaseUrl = document.getElementById('supabaseUrl').value;
+      const serviceKey = document.getElementById('serviceKey').value;
+      const limit = document.getElementById('limit').value;
+
+      const statusDiv = document.getElementById('status');
+      const statusContent = document.getElementById('statusContent');
+      const resultsDiv = document.getElementById('results');
+      const resultsContent = document.getElementById('resultsContent');
+
+      statusDiv.classList.remove('hidden');
+      resultsDiv.classList.add('hidden');
+
+      statusContent.innerHTML = '<p class="text-blue-600">⏳ GPT 콘텐츠 생성 중...</p>';
+
+      try {
+        const response = await fetch(`${supabaseUrl}/functions/v1/generate-gpt-content?limit=${limit}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${serviceKey}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const data = await response.json();
+
+        statusContent.innerHTML = `
+          <p class="text-green-600 font-bold">✅ 완료!</p>
+          <p class="mt-2">발행된 콘텐츠: <strong>${data.published || 0}개</strong></p>
+          <p>오류: <strong>${data.errors || 0}개</strong></p>
+        `;
+
+        resultsDiv.classList.remove('hidden');
+        resultsContent.innerHTML = `
+          <pre class="bg-gray-50 p-4 rounded overflow-auto text-xs">${JSON.stringify(data, null, 2)}</pre>
+        `;
+
+        if (data.details && data.details.published) {
+          const publishedList = data.details.published.map(p =>
+            `<li class="mb-2">
+              <strong>${p.title}</strong><br>
+              <span class="text-sm text-gray-600">slug: ${p.slug}</span>
+            </li>`
+          ).join('');
+
+          resultsContent.innerHTML += `
+            <div class="mt-4">
+              <h3 class="font-bold mb-2">발행된 콘텐츠:</h3>
+              <ul class="list-disc list-inside">${publishedList}</ul>
+            </div>
+          `;
+        }
+
+      } catch (error) {
+        statusContent.innerHTML = `
+          <p class="text-red-600 font-bold">❌ 오류 발생</p>
+          <p class="mt-2">${error.message}</p>
+        `;
+
+        resultsDiv.classList.remove('hidden');
+        resultsContent.innerHTML = `
+          <pre class="bg-red-50 p-4 rounded overflow-auto text-xs">${error.stack}</pre>
+        `;
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GPT 콘텐츠 생성 간단 테스트</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-8">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold mb-6">🚀 GPT 콘텐츠 생성 테스트</h1>
+
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <div class="mb-4">
+        <label class="block text-sm font-medium mb-2">생성할 콘텐츠 개수</label>
+        <input type="number" id="limit" class="w-full border rounded px-3 py-2" value="3" min="1" max="10">
+      </div>
+      <button onclick="testGeneration()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 w-full font-bold">
+        ✨ GPT 콘텐츠 생성 시작
+      </button>
+    </div>
+
+    <div id="status" class="bg-white rounded-lg shadow p-6 mb-6 hidden">
+      <h2 class="text-xl font-bold mb-4">⏳ 실행 중...</h2>
+      <div id="statusContent" class="text-sm"></div>
+    </div>
+
+    <div id="results" class="bg-white rounded-lg shadow p-6 hidden">
+      <h2 class="text-xl font-bold mb-4">📊 결과</h2>
+      <div id="resultsContent"></div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://gibqdecjcdyeyxtknbok.supabase.co';
+    const SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdpYnFkZWNqY2R5ZXl4dGtuYm9rIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2Mjc1MzA3OSwiZXhwIjoyMDc4MzI5MDc5fQ.Y3xje6vYDXHqbKAMZqU6Lo6e_BrjOpLZWl9NXOFn_IA';
+
+    async function testGeneration() {
+      const limit = document.getElementById('limit').value;
+      const statusDiv = document.getElementById('status');
+      const statusContent = document.getElementById('statusContent');
+      const resultsDiv = document.getElementById('results');
+      const resultsContent = document.getElementById('resultsContent');
+
+      statusDiv.classList.remove('hidden');
+      resultsDiv.classList.add('hidden');
+
+      statusContent.innerHTML = `
+        <div class="flex items-center space-x-2">
+          <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+          <p class="text-blue-600">GPT가 ${limit}개의 콘텐츠를 생성하고 있습니다...</p>
+        </div>
+        <p class="text-sm text-gray-500 mt-2">최대 1분 정도 소요될 수 있습니다.</p>
+      `;
+
+      try {
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/generate-gpt-content?limit=${limit}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${SERVICE_KEY}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || `HTTP ${response.status}`);
+        }
+
+        // 성공
+        statusContent.innerHTML = `
+          <div class="flex items-center space-x-2 text-green-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <p class="font-bold">✅ 완료!</p>
+          </div>
+          <div class="mt-4 space-y-2">
+            <p>📝 발행된 콘텐츠: <strong class="text-2xl text-green-600">${data.published || 0}개</strong></p>
+            <p>❌ 오류: <strong>${data.errors || 0}개</strong></p>
+            <p class="text-sm text-gray-600">${data.message || ''}</p>
+          </div>
+        `;
+
+        resultsDiv.classList.remove('hidden');
+
+        if (data.details && data.details.published && data.details.published.length > 0) {
+          const publishedList = data.details.published.map(p => `
+            <div class="border-l-4 border-blue-500 pl-4 py-2 mb-3">
+              <p class="font-bold text-lg">${p.title}</p>
+              <p class="text-sm text-gray-600">slug: <code class="bg-gray-100 px-2 py-1 rounded">${p.slug}</code></p>
+              <a href="/${p.slug}" target="_blank" class="text-blue-600 hover:underline text-sm">페이지 보기 →</a>
+            </div>
+          `).join('');
+
+          resultsContent.innerHTML = `
+            <h3 class="font-bold mb-3 text-lg">🎉 발행된 콘텐츠:</h3>
+            ${publishedList}
+          `;
+        } else if (data.published === 0) {
+          resultsContent.innerHTML = `
+            <div class="bg-yellow-50 border border-yellow-200 rounded p-4">
+              <p class="text-yellow-800 font-bold">⚠️ 발행된 콘텐츠가 없습니다</p>
+              <p class="text-sm text-yellow-700 mt-2">검증된 조합이 부족하거나 이미 발행된 콘텐츠일 수 있습니다.</p>
+            </div>
+            <pre class="bg-gray-50 p-4 rounded overflow-auto text-xs mt-4">${JSON.stringify(data, null, 2)}</pre>
+          `;
+        }
+
+        if (data.details && data.details.errors && data.details.errors.length > 0) {
+          resultsContent.innerHTML += `
+            <h3 class="font-bold mb-3 text-lg mt-6 text-red-600">❌ 오류 내역:</h3>
+            <pre class="bg-red-50 p-4 rounded overflow-auto text-xs">${JSON.stringify(data.details.errors, null, 2)}</pre>
+          `;
+        }
+
+      } catch (error) {
+        statusContent.innerHTML = `
+          <div class="flex items-center space-x-2 text-red-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+            <p class="font-bold">❌ 오류 발생</p>
+          </div>
+          <p class="mt-2 text-red-600">${error.message}</p>
+        `;
+
+        resultsDiv.classList.remove('hidden');
+        resultsContent.innerHTML = `
+          <div class="bg-red-50 border border-red-200 rounded p-4">
+            <p class="font-bold text-red-800">오류 상세:</p>
+            <pre class="text-xs mt-2 text-red-700">${error.stack || error.message}</pre>
+          </div>
+        `;
+      }
+    }
+  </script>
+</body>
+</html>
