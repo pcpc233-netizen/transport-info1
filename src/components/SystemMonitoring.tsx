@@ -78,7 +78,18 @@ export default function SystemMonitoring() {
   const runAutomation = async () => {
     setRunningAutomation(true);
     try {
+      // Debug: Check all sessionStorage keys
+      console.log('[DEBUG] All sessionStorage keys:');
+      for (let i = 0; i < sessionStorage.length; i++) {
+        const key = sessionStorage.key(i);
+        if (key) {
+          const value = sessionStorage.getItem(key);
+          console.log(`  ${key}:`, value ? value.substring(0, 40) + '...' : 'null');
+        }
+      }
+
       const sessionToken = sessionStorage.getItem('admin_session_token');
+      console.log('[DEBUG] Retrieved token from key "admin_session_token":', sessionToken);
 
       if (!sessionToken) {
         alert('세션이 만료되었습니다. 다시 로그인해주세요.');
