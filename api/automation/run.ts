@@ -20,15 +20,20 @@ interface AdminSession {
 
 async function verifyAdminSession(sessionToken: string): Promise<{ adminId: string; username: string } | null> {
   try {
-    console.log('[verifyAdminSession] Starting verification for token:', sessionToken.substring(0, 30) + '...');
+    console.log('===== SESSION VERIFICATION DEBUG =====');
+    console.log('[verifyAdminSession] Full token received:', sessionToken);
+    console.log('[verifyAdminSession] Token length:', sessionToken.length);
+    console.log('[verifyAdminSession] Token preview:', sessionToken.substring(0, 36));
     console.log('[verifyAdminSession] Using Supabase URL:', supabaseUrl);
     console.log('[verifyAdminSession] Service key available:', !!supabaseServiceKey);
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Query with exact token match
+    console.log('[verifyAdminSession] Querying DB for token:', sessionToken);
     const { data: session, error } = await supabase
       .from('admin_sessions')
-      .select('admin_id, expires_at')
+      .select('admin_id, expires_at, session_token')
       .eq('session_token', sessionToken)
       .gt('expires_at', new Date().toISOString())
       .maybeSingle();
@@ -36,7 +41,12 @@ async function verifyAdminSession(sessionToken: string): Promise<{ adminId: stri
     console.log('[verifyAdminSession] Query result:', {
       found: !!session,
       error: error?.message,
-      sessionData: session ? { admin_id: session.admin_id, expires_at: session.expires_at } : null
+      sessionData: session ? {
+        admin_id: session.admin_id,
+        expires_at: session.expires_at,
+        token_from_db: session.session_token,
+        token_matches: session.session_token === sessionToken
+      } : null
     });
 
     if (error) {
@@ -46,8 +56,19 @@ async function verifyAdminSession(sessionToken: string): Promise<{ adminId: stri
 
     if (!session) {
       console.log('[verifyAdminSession] Session not found or expired');
+      console.log('[verifyAdminSession] Searched for token:', sessionToken);
+
+      // Check if any similar tokens exist
+      const { data: allSessions } = await supabase
+        .from('admin_sessions')
+        .select('session_token')
+        .gt('expires_at', new Date().toISOString())
+        .limit(10);
+
+      console.log('[verifyAdminSession] Active sessions in DB:', allSessions?.map(s => s.session_token));
       return null;
     }
+    console.log('====================================');
 
     const { data: admin, error: adminError } = await supabase
       .from('admin_users')
@@ -156,11 +177,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const sessionToken = authHeader.replace('Bearer ', '').trim();
 
-    console.log('Extracted session token:', {
-      length: sessionToken.length,
-      preview: sessionToken.substring(0, 20) + '...',
-      fullToken: sessionToken
-    });
+    console.log('===== TOKEN EXTRACTION DEBUG =====');
+    console.log('Raw Authorization Header:', authHeader);
+    console.log('After "Bearer " removal:', authHeader.replace('Bearer ', ''));
+    console.log('After trim():', sessionToken);
+    console.log('Token length:', sessionToken.length);
+    console.log('Token hex dump (first 50 chars):', Array.from(sessionToken.substring(0, 50)).map(c => c.charCodeAt(0).toString(16)).join(' '));
+    console.log('Full token:', sessionToken);
+    console.log('==================================');
 
     if (!sessionToken) {
       console.log('Empty session token');
