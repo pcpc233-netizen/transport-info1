@@ -28,7 +28,7 @@
   ],
   "rewrites": [
     {
-      "source": "/:path*",
+      "source": "/admin.html",
       "destination": "/admin.html",
       "has": [
         {
@@ -38,7 +38,17 @@
       ]
     },
     {
-      "source": "/(.*)",
+      "source": "/:path((?!api).*)",
+      "destination": "/admin.html",
+      "has": [
+        {
+          "type": "host",
+          "value": "admin.bustime.site"
+        }
+      ]
+    },
+    {
+      "source": "/:path((?!api|assets|favicon|robots.txt).*)",
       "destination": "/index.html"
     }
   ]

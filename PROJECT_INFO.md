@@ -4,6 +4,32 @@
 - **GitHub Repository**: `pcpc233-netizen/transport-info1`
 - **Repository URL**: https://github.com/pcpc233-netizen/transport-info1
 - **Default Branch**: `main`
+- **Access Token**: `.bolt/GITHUB_TOKEN.md` 파일 참조 (절대 공개 금지!)
+
+## Bolt 작업 환경에서 GitHub 푸시 방법
+
+이 프로젝트는 Bolt 환경에서 작업하고 있으므로, 변경사항을 GitHub에 푸시하려면 다음 명령어를 사용하세요:
+
+```bash
+# 1. 저장소 클론
+cd /tmp/cc-agent/59952428
+git clone https://[TOKEN]@github.com/pcpc233-netizen/transport-info1.git repo-clone
+
+# 2. 프로젝트 파일 복사
+cp -r /tmp/cc-agent/59952428/project/* /tmp/cc-agent/59952428/repo-clone/
+
+# 3. Git 설정 및 커밋
+cd /tmp/cc-agent/59952428/repo-clone
+git config user.email "admin@bustime.site"
+git config user.name "BusTime Bot"
+git add -A
+git commit -m "Update from Bolt"
+
+# 4. 푸시 (Vercel 자동 배포)
+git push origin main
+```
+
+**토큰은 `.bolt/GITHUB_TOKEN.md` 파일에 저장되어 있습니다.**
 
 ## 배포 환경
 - **Production URL**: https://bustime.site

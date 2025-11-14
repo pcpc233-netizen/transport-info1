@@ -86,24 +86,31 @@ export default function SystemMonitoring() {
         return;
       }
 
+      console.log('Running automation with session token:', sessionToken.substring(0, 20) + '...');
+
       const response = await fetch('/api/automation/run', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${sessionToken}`,
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
       });
 
       const result = await response.json();
 
+      console.log('Automation response:', { status: response.status, result });
+
       if (!response.ok) {
         if (response.status === 401) {
-          alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+          console.error('Session expired:', result);
+          alert('세션이 만료되었습니다. 다시 로그인해주세요.\n\n디버그: ' + (result.debug ? JSON.stringify(result.debug) : result.error));
           sessionStorage.removeItem('admin_session_token');
           window.location.href = '/admin.html';
           return;
         }
-        alert('자동화 실패: ' + (result.error || '서버 오류'));
+        console.error('Automation failed:', result);
+        alert('자동화 실패: ' + (result.error || '서버 오류') + '\n\n' + (result.debug ? JSON.stringify(result.debug) : ''));
         return;
       }
 

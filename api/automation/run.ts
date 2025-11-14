@@ -123,11 +123,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const authHeader = req.headers.authorization || req.headers.Authorization;
+    // Vercel normalizes headers to lowercase
+    const authHeader = req.headers.authorization as string | undefined;
+
+    console.log('Debug - Headers:', {
+      hasAuth: !!authHeader,
+      allHeaders: Object.keys(req.headers),
+    });
 
     if (!authHeader || typeof authHeader !== 'string') {
       console.log('No authorization header');
-      return res.status(401).json({ error: 'Unauthorized: No session token' });
+      return res.status(401).json({
+        error: 'Unauthorized: No session token',
+        debug: { hasAuthHeader: !!authHeader, headerType: typeof authHeader }
+      });
     }
 
     if (!authHeader.startsWith('Bearer ')) {
