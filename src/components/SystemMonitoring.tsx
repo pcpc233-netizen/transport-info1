@@ -86,48 +86,23 @@ export default function SystemMonitoring() {
         return;
       }
 
-      const verifyResponse = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-verify-session`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ sessionToken }),
-        }
-      );
-
-      if (!verifyResponse.ok) {
-        alert('세션이 만료되었습니다. 다시 로그인해주세요.');
-        sessionStorage.removeItem('admin_session_token');
-        window.location.href = '/admin.html';
-        return;
-      }
-
-      const verifyResult = await verifyResponse.json();
-      if (!verifyResult.success || !verifyResult.valid) {
-        alert('세션이 만료되었습니다. 다시 로그인해주세요.');
-        sessionStorage.removeItem('admin_session_token');
-        window.location.href = '/admin.html';
-        return;
-      }
-
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auto-content-orchestrator`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ sessionToken }),
-        }
-      );
+      const response = await fetch('/api/automation/run', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${sessionToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
 
       const result = await response.json();
 
       if (!response.ok) {
+        if (response.status === 401) {
+          alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+          sessionStorage.removeItem('admin_session_token');
+          window.location.href = '/admin.html';
+          return;
+        }
         alert('자동화 실패: ' + (result.error || '서버 오류'));
         return;
       }

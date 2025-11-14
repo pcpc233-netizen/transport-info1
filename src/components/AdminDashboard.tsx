@@ -3,6 +3,7 @@ import { LogOut, BarChart3, FileText, Server, Settings } from 'lucide-react';
 import AnalyticsDashboard from './AnalyticsDashboard';
 import ContentManagement from './ContentManagement';
 import SystemMonitoring from './SystemMonitoring';
+import AutomationScheduleManager from './AutomationScheduleManager';
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -125,43 +126,7 @@ function SettingsPanel() {
         </div>
       </div>
 
-      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h3 className="text-xl font-bold text-white mb-4">자동화 설정</h3>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
-            <div>
-              <div className="text-white font-medium mb-1">매일 자동 콘텐츠 발행</div>
-              <div className="text-sm text-gray-400">매일 새벽 2시에 20개 콘텐츠 자동 발행</div>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" defaultChecked className="sr-only peer" />
-              <div className="w-14 h-7 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-blue-600"></div>
-            </label>
-          </div>
-
-          <div className="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
-            <div>
-              <div className="text-white font-medium mb-1">시간당 버스 데이터 수집</div>
-              <div className="text-sm text-gray-400">매시간 정각에 실시간 버스 정보 수집</div>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" defaultChecked className="sr-only peer" />
-              <div className="w-14 h-7 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-blue-600"></div>
-            </label>
-          </div>
-
-          <div className="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
-            <div>
-              <div className="text-white font-medium mb-1">통계 자동 집계</div>
-              <div className="text-sm text-gray-400">매일 새벽 3시에 전일 통계 집계</div>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" defaultChecked className="sr-only peer" />
-              <div className="w-14 h-7 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-blue-600"></div>
-            </label>
-          </div>
-        </div>
-      </div>
+      <AutomationScheduleManager />
 
       <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
         <h3 className="text-xl font-bold text-white mb-4">계정 관리</h3>
