@@ -23,6 +23,11 @@ export default function AdminApp() {
   const checkSession = async () => {
     const sessionToken = sessionStorage.getItem('admin_session_token');
 
+    console.log('Checking session:', {
+      hasToken: !!sessionToken,
+      tokenPreview: sessionToken ? sessionToken.substring(0, 20) + '...' : 'none'
+    });
+
     if (sessionToken) {
       try {
         const response = await fetch('/api/auth/verify', {
@@ -79,8 +84,22 @@ export default function AdminApp() {
 
       const result = await response.json();
 
+      console.log('Login response:', {
+        status: response.status,
+        success: result.success,
+        hasToken: !!result.sessionToken,
+        tokenPreview: result.sessionToken ? result.sessionToken.substring(0, 20) + '...' : 'none'
+      });
+
       if (result.success && result.sessionToken) {
+        console.log('Storing session token:', result.sessionToken.substring(0, 20) + '...');
         sessionStorage.setItem('admin_session_token', result.sessionToken);
+
+        // Verify storage immediately
+        const storedToken = sessionStorage.getItem('admin_session_token');
+        console.log('Verification - token stored correctly:', storedToken === result.sessionToken);
+        console.log('Stored token preview:', storedToken ? storedToken.substring(0, 20) + '...' : 'none');
+
         setIsAuthenticated(true);
         setAttempts(0);
         setError('');
