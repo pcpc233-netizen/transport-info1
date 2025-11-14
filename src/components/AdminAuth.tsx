@@ -2,38 +2,47 @@ import { useState } from 'react';
 import { Lock, Eye, EyeOff } from 'lucide-react';
 
 interface AdminAuthProps {
-  onAuthenticated: () => void;
+  onAuthenticated: (token: string) => void;
   onCancel: () => void;
 }
 
-const ADMIN_PASSWORD = 'bustime2025!admin';
-
 export default function AdminAuth({ onAuthenticated, onCancel }: AdminAuthProps) {
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const [attempts, setAttempts] = useState(0);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
 
-    if (attempts >= 3) {
-      setError('너무 많은 시도. 5분 후 다시 시도하세요.');
-      setTimeout(() => {
-        setAttempts(0);
-        setError('');
-      }, 300000);
-      return;
-    }
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const response = await fetch(`${supabaseUrl}/functions/v1/admin-login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username,
+          password,
+          ipAddress: 'unknown',
+          userAgent: navigator.userAgent,
+        }),
+      });
 
-    if (password === ADMIN_PASSWORD) {
-      sessionStorage.setItem('admin_authenticated', 'true');
-      sessionStorage.setItem('admin_auth_time', Date.now().toString());
-      onAuthenticated();
-    } else {
-      setAttempts(attempts + 1);
-      setError('비밀번호가 틀렸습니다.');
-      setPassword('');
+      const data = await response.json();
+
+      if (data.success && data.sessionToken) {
+        sessionStorage.setItem('admin_session_token', data.sessionToken);
+        onAuthenticated(data.sessionToken);
+      } else {
+        setError(data.error || '로그인 실패');
+      }
+    } catch (err: any) {
+      setError(err.message || '네트워크 오류');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -56,20 +65,31 @@ export default function AdminAuth({ onAuthenticated, onCancel }: AdminAuthProps)
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
+              아이디
+            </label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="아이디를 입력하세요"
+              disabled={loading}
+              autoFocus
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               비밀번호
             </label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  setError('');
-                }}
+                onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="비밀번호를 입력하세요"
-                disabled={attempts >= 3}
-                autoFocus
+                disabled={loading}
               />
               <button
                 type="button"
@@ -84,11 +104,6 @@ export default function AdminAuth({ onAuthenticated, onCancel }: AdminAuthProps)
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-sm text-red-600 text-center">{error}</p>
-              {attempts > 0 && attempts < 3 && (
-                <p className="text-xs text-red-500 text-center mt-1">
-                  남은 시도: {3 - attempts}회
-                </p>
-              )}
             </div>
           )}
 
@@ -96,16 +111,17 @@ export default function AdminAuth({ onAuthenticated, onCancel }: AdminAuthProps)
             <button
               type="button"
               onClick={onCancel}
-              className="flex-1 px-4 py-3 border-2 border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold"
+              disabled={loading}
+              className="flex-1 px-4 py-3 border-2 border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold disabled:opacity-50"
             >
               취소
             </button>
             <button
               type="submit"
-              disabled={attempts >= 3 || !password}
+              disabled={loading || !username || !password}
               className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold disabled:bg-gray-300 disabled:cursor-not-allowed"
             >
-              확인
+              {loading ? '로그인 중...' : '확인'}
             </button>
           </div>
         </form>
