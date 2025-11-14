@@ -20,6 +20,10 @@ interface AdminSession {
 
 async function verifyAdminSession(sessionToken: string): Promise<{ adminId: string; username: string } | null> {
   try {
+    console.log('[verifyAdminSession] Starting verification for token:', sessionToken.substring(0, 30) + '...');
+    console.log('[verifyAdminSession] Using Supabase URL:', supabaseUrl);
+    console.log('[verifyAdminSession] Service key available:', !!supabaseServiceKey);
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const { data: session, error } = await supabase
@@ -29,13 +33,19 @@ async function verifyAdminSession(sessionToken: string): Promise<{ adminId: stri
       .gt('expires_at', new Date().toISOString())
       .maybeSingle();
 
+    console.log('[verifyAdminSession] Query result:', {
+      found: !!session,
+      error: error?.message,
+      sessionData: session ? { admin_id: session.admin_id, expires_at: session.expires_at } : null
+    });
+
     if (error) {
-      console.error('Session query error:', error);
+      console.error('[verifyAdminSession] Session query error:', error);
       return null;
     }
 
     if (!session) {
-      console.log('Session not found or expired');
+      console.log('[verifyAdminSession] Session not found or expired');
       return null;
     }
 
@@ -146,12 +156,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const sessionToken = authHeader.replace('Bearer ', '').trim();
 
+    console.log('Extracted session token:', {
+      length: sessionToken.length,
+      preview: sessionToken.substring(0, 20) + '...',
+      fullToken: sessionToken
+    });
+
     if (!sessionToken) {
       console.log('Empty session token');
       return res.status(401).json({ error: 'Unauthorized: Empty session token' });
     }
 
-    console.log('Verifying session token...');
+    console.log('Verifying session token:', sessionToken.substring(0, 30) + '...');
     const session = await verifyAdminSession(sessionToken);
 
     if (!session) {

@@ -86,7 +86,10 @@ export default function SystemMonitoring() {
         return;
       }
 
-      console.log('Running automation with session token:', sessionToken.substring(0, 20) + '...');
+      console.log('[SystemMonitoring] Full session token being sent:', sessionToken);
+      console.log('[SystemMonitoring] Token length:', sessionToken.length);
+      console.log('[SystemMonitoring] Token preview:', sessionToken.substring(0, 30) + '...');
+      console.log('[SystemMonitoring] Fetching:', window.location.origin + '/api/automation/run');
 
       const response = await fetch('/api/automation/run', {
         method: 'POST',
